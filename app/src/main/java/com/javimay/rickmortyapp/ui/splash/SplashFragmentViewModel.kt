@@ -6,23 +6,33 @@ import android.widget.ImageView
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
+import com.javimay.rickmortyapp.data.db.entities.Character
+import com.javimay.rickmortyapp.domain.usecases.GetDataUseCase
 import com.javimay.rickmortyapp.utils.SECOND
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SplashFragmentViewModel @Inject constructor() : ViewModel(), LifecycleObserver {
+class SplashFragmentViewModel @Inject constructor(
+    private val getDataUseCase: GetDataUseCase
+) : ViewModel(), LifecycleObserver {
 
     private val durationInSeconds = 4
     private val appearAlpha = 1f
     var animFinished = MutableLiveData<Boolean>()
     var dataDownloaded = MutableLiveData<Boolean>()
+    private var getDataJob: Job? = null
 
-    fun logoAppear(view: ImageView){
+    fun logoAppear(view: ImageView) {
         view.animate()
             .alpha(appearAlpha)
             .setDuration(SECOND * durationInSeconds)
-            .setListener(object : AnimatorListenerAdapter(){
+            .setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     animFinished.postValue(true)
                 }
@@ -30,7 +40,13 @@ class SplashFragmentViewModel @Inject constructor() : ViewModel(), LifecycleObse
             .start()
     }
 
-    suspend fun downloadData() {
-
+    fun downloadData() = liveData {
+        var isDataExtracted = false
+        //TODO: Replace with lifecyclescope
+        getDataJob = CoroutineScope(Dispatchers.IO).launch {
+            isDataExtracted = getDataUseCase.execute()
+        }
+        emit(isDataExtracted)
     }
+
 }

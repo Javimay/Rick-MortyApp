@@ -10,20 +10,22 @@ import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.javimay.rickmortyapp.R
+import com.javimay.rickmortyapp.data.model.Data
 import com.javimay.rickmortyapp.databinding.FragmentSplashBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SplashFragment : Fragment() {
 
-    private lateinit var binding : FragmentSplashBinding
+    private lateinit var binding: FragmentSplashBinding
 
     private val splashViewModel: SplashFragmentViewModel by viewModels()
-    private lateinit var navController : NavController
+    private lateinit var navController: NavController
     private var animationObserver = Observer<Boolean> { splashViewModel.animFinished }
     private var dataObserver = Observer<Boolean> { splashViewModel.animFinished }
+    private lateinit var dataList: List<MutableList<Data>>
     private var animFinished = false
-    private var dataDownloaded = false
+    private var charactersDownloaded = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,11 +37,19 @@ class SplashFragment : Fragment() {
             if (it) verifyData()
         }
         splashViewModel.logoAppear(binding.ivLogo)
+        downloadData()
         return binding.root
     }
 
+    private fun downloadData() {
+        splashViewModel.downloadData().observe(viewLifecycleOwner) {
+            charactersDownloaded = it
+            verifyData()
+        }
+    }
+
     private fun verifyData() {
-        if (dataDownloaded && animFinished) goToHomeScreen()
+        if (charactersDownloaded && animFinished) goToHomeScreen()
     }
 
     private fun goToHomeScreen() {

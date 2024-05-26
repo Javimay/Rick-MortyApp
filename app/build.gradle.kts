@@ -1,10 +1,10 @@
-import org.jetbrains.kotlin.gradle.model.Kapt
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -22,6 +22,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField(type = "String", name = "API_BASE_URL", value = "\"https://rickandmortyapi.com/api/\"")
     }
 
     buildTypes {
@@ -42,9 +43,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        buildConfig = true
     }
     packaging {
         resources {
@@ -58,10 +57,7 @@ dependencies {
     implementation (libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    //implementation(libs.androidx.ui)
-    //implementation(libs.androidx.ui.graphics)
-    //implementation(libs.androidx.ui.tooling.preview)
-    //implementation(libs.androidx.material3)
+    implementation(libs.kotlin.serialization)
 
     // ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
@@ -78,11 +74,22 @@ dependencies {
     implementation(libs.androidx.navigation)
     implementation(libs.androidx.navigation.ui)
 
+    //Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter)
+    implementation(libs.okhttp.interceptor)
+
+    //Room
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+
+    //Coil
+    implementation(libs.coil)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    //androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(libs.androidx.navigation.test)
-    //debugImplementation(libs.androidx.ui.tooling)
-    //debugImplementation(libs.androidx.ui.test.manifest)
 }
