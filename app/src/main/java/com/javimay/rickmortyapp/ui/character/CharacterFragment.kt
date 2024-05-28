@@ -1,20 +1,23 @@
 package com.javimay.rickmortyapp.ui.character
 
+import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.javimay.rickmortyapp.R
 import com.javimay.rickmortyapp.data.model.CharacterDto
 import com.javimay.rickmortyapp.databinding.FragmentCharacterBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class CharacterFragment : Fragment() {
+class CharacterFragment : DialogFragment() {
 
     private lateinit var binding: FragmentCharacterBinding
     private lateinit var navController: NavController
@@ -30,7 +33,18 @@ class CharacterFragment : Fragment() {
         navController = findNavController()
         val character = args.character
         bindCharacterData(character)
+
         return binding.root
+    }
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState)
+        dialog.window?.apply {
+            setStyle(STYLE_NORMAL, android.R.style.Theme_Material_Light_Dialog_NoActionBar_MinWidth)
+            setLayout(1000, 300)
+            setBackgroundDrawableResource(R.color.transparent)
+        }
+        return dialog
     }
 
     private fun bindCharacterData(character: CharacterDto) {

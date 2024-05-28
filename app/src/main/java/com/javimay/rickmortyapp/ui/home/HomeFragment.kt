@@ -18,6 +18,7 @@ import com.javimay.rickmortyapp.data.db.entities.Character
 import com.javimay.rickmortyapp.data.db.entities.toCharacterDto
 import com.javimay.rickmortyapp.databinding.FragmentHomeBinding
 import com.javimay.rickmortyapp.ui.adapters.RecyclerViewAdapter
+import com.javimay.rickmortyapp.ui.character.CharacterFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -72,5 +73,14 @@ class HomeFragment : Fragment() {
             character.toCharacterDto()
         )
         navController.navigate(action)
+
+//        showCharacterFragment()
+    }
+
+    private fun showCharacterFragment() {
+        activity?.supportFragmentManager?.beginTransaction()
+//            ?.add(R.id.fcvCharacterDetails, CharacterFragment())
+            ?.addToBackStack(null)
+            ?.commit()
     }
 }
