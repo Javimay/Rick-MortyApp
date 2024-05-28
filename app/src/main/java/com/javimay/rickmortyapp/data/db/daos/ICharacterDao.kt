@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.javimay.rickmortyapp.data.db.entities.Character
+import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
 import com.javimay.rickmortyapp.data.model.relations.CharacterWithEpisode
 import com.javimay.rickmortyapp.utils.CHARACTER_TABLE
 
@@ -31,6 +32,9 @@ interface ICharacterDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun saveCharacter(character: Character)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun saveCharacterWithEpisodes(characterWithEpisode: CharacterEpisodeCrossRef)
 
     @Query("DELETE FROM $CHARACTER_TABLE")
     suspend fun deleteCharacters()

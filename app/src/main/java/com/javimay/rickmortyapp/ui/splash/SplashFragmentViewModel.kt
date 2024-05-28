@@ -26,7 +26,6 @@ class SplashFragmentViewModel @Inject constructor(
     private val appearAlpha = 1f
     var animFinished = MutableLiveData<Boolean>()
     var dataDownloaded = MutableLiveData<Boolean>()
-    private var getDataJob: Job? = null
 
     fun logoAppear(view: ImageView) {
         view.animate()
@@ -41,12 +40,7 @@ class SplashFragmentViewModel @Inject constructor(
     }
 
     fun downloadData() = liveData {
-        var isDataExtracted = false
-        //TODO: Replace with lifecyclescope
-        getDataJob = CoroutineScope(Dispatchers.IO).launch {
-            isDataExtracted = getDataUseCase.execute()
-        }
-        emit(isDataExtracted)
+        emit(getDataUseCase.execute())
     }
 
 }

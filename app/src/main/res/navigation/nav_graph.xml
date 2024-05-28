@@ -18,5 +18,18 @@
         android:id="@+id/homeFragment"
         android:name="com.javimay.rickmortyapp.ui.home.HomeFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_homeFragment_to_characterFragment"
+            app:destination="@id/characterFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/characterFragment"
+        android:name="com.javimay.rickmortyapp.ui.character.CharacterFragment"
+        android:label="fragment_character"
+        tools:layout="@layout/fragment_character" >
+        <argument
+            android:name="id"
+            app:argType="long" />
+    </fragment>
 </navigation>

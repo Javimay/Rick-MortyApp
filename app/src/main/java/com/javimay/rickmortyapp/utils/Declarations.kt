@@ -10,8 +10,16 @@ import java.util.regex.Pattern
 
 fun getIdsFromStringList(stringList: List<String>): List<Int> =
     stringList.map {
-        Pattern.compile("[0-9]+").matcher(it).group().toInt()
+        getIdFromString(it)
     }
+
+fun getIdFromString(stringId: String): Int {
+    return if (stringId.isEmpty()){
+        0
+    } else {
+        stringId.filter(Char::isDigit).toInt()
+    }
+}
 
 suspend fun getBitmap(context: Context, url: String): Bitmap {
     val loading = ImageLoader(context)

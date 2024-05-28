@@ -1,12 +1,12 @@
 package com.javimay.rickmortyapp.data.repository.episode.datasource
 
-import com.javimay.rickmortyapp.data.model.Data
-import com.javimay.rickmortyapp.data.model.Result
+import com.javimay.rickmortyapp.data.model.EpisodeData
+import com.javimay.rickmortyapp.data.model.EpisodeResult
 import retrofit2.Response
 
 interface IEpisodeRemoteDataSource {
 
-    suspend fun getData(): Response<Data>
-    suspend fun getDataByIds(episodeIds: List<Int>): Response<List<Result>>
-    suspend fun getDataByPage(page: Int): Response<Data>
+    suspend fun getEpisodesData(): Response<EpisodeData>
+    suspend fun getEpisodesByIds(episodeIds: String): Response<List<EpisodeResult>>
+    suspend fun getEpisodesByPage(page: Int): Response<EpisodeData>
 }

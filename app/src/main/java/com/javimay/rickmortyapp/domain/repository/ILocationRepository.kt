@@ -8,5 +8,7 @@ interface ILocationRepository {
     suspend fun getLocations(): List<Location>
     suspend fun getLocationsFromIds(locationIdsList: List<Int>): List<Location>
 
+    suspend fun saveLocation(location: Location)
+    suspend fun saveLocations(locations: List<Location>)
     suspend fun saveLocationWithCharacters(locationWithCharacters: LocationWithCharacter)
 }

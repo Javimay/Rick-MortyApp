@@ -19,6 +19,10 @@ class EpisodeLocalDataSourceImpl @Inject constructor(
     override suspend fun getEpisodesByIdsFromDb(episodeIds: List<Long>): List<Episode> =
         episodeDao.getEpisodesByIds(episodeIds)
 
+    override suspend fun saveEpisodeToDb(episode: Episode) {
+        episodeDao.saveEpisode(episode)
+    }
+
     override suspend fun saveEpisodesToDb(episodes: List<Episode>) =
         episodeDao.saveEpisodes(episodes)
 

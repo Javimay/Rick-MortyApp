@@ -10,6 +10,7 @@ interface IEpisodeLocalDataSource {
 
     suspend fun getEpisodesByIdsFromDb(episodeIds: List<Long>): List<Episode>
 
+    suspend fun saveEpisodeToDb(episode: Episode)
     suspend fun saveEpisodesToDb(episodes: List<Episode>)
 
     suspend fun getEpisodesWithCharactersFromDb(): List<EpisodeWithCharacter>

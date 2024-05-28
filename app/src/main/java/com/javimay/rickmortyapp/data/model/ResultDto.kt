@@ -1,26 +1,26 @@
 package com.javimay.rickmortyapp.data.model
 
 import android.content.Context
+import com.google.gson.annotations.SerializedName
 import com.javimay.rickmortyapp.data.db.entities.Character
 import com.javimay.rickmortyapp.data.db.entities.Episode
 import com.javimay.rickmortyapp.data.db.entities.Location
-import com.javimay.rickmortyapp.data.model.relations.CharacterWithEpisode
 import com.javimay.rickmortyapp.utils.getBitmap
+import com.javimay.rickmortyapp.utils.getIdFromString
+import kotlinx.serialization.SerialName
 
-
-data class Result(
+data class ResultDto(
     val airDate: String,
     val characters: List<String>,
     val created: String,
     val dimension: String,
-    val episode: String,
-    val episodeList: List<String>,
+    val episode: List<String>,
     val gender: String,
     val id: Int,
     val image: String,
-    val location: Location,
+    val location: Origin,
     val name: String,
-    val origin: Location,
+    val origin: Origin,
     val residents: List<String>,
     val species: String,
     val status: String,
@@ -28,15 +28,15 @@ data class Result(
     val url: String
 )
 
-suspend fun Result.toCharacter(context: Context): Character {
+suspend fun ResultDto.toCharacter(context: Context): Character {
     return Character(
         this.created,
         this.gender,
         this.id.toLong(),
         getBitmap(context, this.image),
-        this.location.locationId,
+        getIdFromString(this.location.url).toLong(),
         this.name,
-        this.origin.locationId,
+        getIdFromString(this.origin.url).toLong(),
         this.species,
         this.status,
         this.type,
@@ -44,18 +44,11 @@ suspend fun Result.toCharacter(context: Context): Character {
     )
 }
 
-suspend fun Result.toEpisode(): Episode {
-    return Episode(
-        this.airDate,
-        this.created,
-        this.episode,
-        this.id.toLong(),
-        this.name,
-        this.url,
-    )
+suspend fun List<ResultDto>.toCharacterList(context: Context): List<Character> {
+    return map { it.toCharacter(context) }
 }
 
-suspend fun Result.toLocation(): Location {
+suspend fun ResultDto.toLocation(): Location {
     return Location(
         this.created,
         this.dimension,
@@ -65,9 +58,3 @@ suspend fun Result.toLocation(): Location {
         this.url,
     )
 }
-
-/*suspend fun Result.toCharacterWithEpisode(character: Character): CharacterWithEpisode {
-    return CharacterWithEpisode(
-        character
-    )
-}*/

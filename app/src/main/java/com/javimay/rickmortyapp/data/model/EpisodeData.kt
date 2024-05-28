@@ -1,8 +1,8 @@
 package com.javimay.rickmortyapp.data.model
 
-data class Data(
+data class EpisodeData(
     val info: DataInfo,
-    val results: List<ResultDto>
+    val results: List<EpisodeResult>
 ) {
     constructor(): this(DataInfo(), emptyList())
 }

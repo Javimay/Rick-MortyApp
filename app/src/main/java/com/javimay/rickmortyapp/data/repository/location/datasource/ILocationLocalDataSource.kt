@@ -2,7 +2,6 @@ package com.javimay.rickmortyapp.data.repository.location.datasource
 
 import com.javimay.rickmortyapp.data.db.entities.Location
 import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
-import com.javimay.rickmortyapp.data.model.relations.LocationWithCharacter
 
 
 interface ILocationLocalDataSource {
@@ -10,7 +9,9 @@ interface ILocationLocalDataSource {
 
     suspend fun getLocationsByIdsFromDb(locationsIds: List<Long>): List<Location>
 
-    suspend fun saveLocationToDb(locations: List<Location>)
+    suspend fun saveLocationToDb(location: Location)
+
+    suspend fun saveLocationsToDb(locations: List<Location>)
 
     suspend fun saveLocationWithCharactersToDb(locationWithCharacters: CharacterLocationCrossRef)
 

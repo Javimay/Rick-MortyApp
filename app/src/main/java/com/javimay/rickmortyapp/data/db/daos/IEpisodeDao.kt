@@ -34,6 +34,9 @@ interface IEpisodeDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun saveEpisodes(episodes: List<Episode>)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun saveEpisode(episodes: Episode)
+
     @Query( "DELETE FROM $EPISODE_TABLE")
     suspend fun deleteEpisodes()
 }

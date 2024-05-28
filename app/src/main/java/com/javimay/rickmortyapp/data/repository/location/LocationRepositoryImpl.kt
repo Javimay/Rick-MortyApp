@@ -3,7 +3,7 @@ package com.javimay.rickmortyapp.data.repository.location
 import android.util.Log
 import com.javimay.rickmortyapp.data.db.entities.Location
 import com.javimay.rickmortyapp.data.model.Data
-import com.javimay.rickmortyapp.data.model.Result
+import com.javimay.rickmortyapp.data.model.ResultDto
 import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
 import com.javimay.rickmortyapp.data.model.relations.LocationWithCharacter
 import com.javimay.rickmortyapp.data.model.toLocation
@@ -23,10 +23,15 @@ class LocationRepositoryImpl @Inject constructor(
     companion object {
         val TAG = LocationRepositoryImpl::class.simpleName;
     }
-    override suspend fun getLocations(): List<Location> = getLocationsFromCache()
+    override suspend fun getLocations(): List<Location> = getLocationsFromDb()
 
     override suspend fun getLocationsFromIds(locationIdsList: List<Int>): List<Location> =
         getLocationsFromCache(locationIdsList)
+
+    override suspend fun saveLocation(location: Location) {
+        locationCacheDataSource.saveLocationToCache(location)
+        locationLocalDataSource.saveLocationToDb(location)
+    }
 
     override suspend fun saveLocationWithCharacters(locationWithCharacters: LocationWithCharacter) {
         saveLocationsWithCharactersToCache(locationWithCharacters)
@@ -66,9 +71,26 @@ class LocationRepositoryImpl @Inject constructor(
         }
         if (locationList.isEmpty()) {
             locationList = getLocationsFromDb(locationIdsList)
-            locationCacheDataSource.saveLocationsToCache(locationList)
+            saveLocations(locationList)
+        }else {
+            val idInDb = locationList.map { it.locationId }
+            val locationIdsListToSave = locationIdsList.filterNot { idInDb.contains(it.toLong()) }
+            if (locationIdsListToSave.contains(0)) createUnknownLocation()
+            val newLocationsToSave = getLocationsFromDb(locationIdsListToSave)
+            saveLocations(newLocationsToSave)
         }
         return locationList
+    }
+
+    private suspend fun createUnknownLocation() {
+        val unknownLocation =
+            Location("", "", 0, "Unknown Location", "","")
+        saveLocation(unknownLocation)
+    }
+
+    override suspend fun saveLocations(locations: List<Location>) {
+        locationCacheDataSource.saveLocationsToCache(locations)
+        locationLocalDataSource.saveLocationsToDb(locations)
     }
 
     private suspend fun getLocationsFromDb(): List<Location> {
@@ -103,7 +125,7 @@ class LocationRepositoryImpl @Inject constructor(
     private suspend fun getLocationsFromApi(): List<Location> {
         lateinit var locationList: List<Location>
         try {
-            val response: Response<Data> = locationRemoteDataSource.getData()
+            val response: Response<Data> = locationRemoteDataSource.getLocations()
             val body = response.body()
             if (body != null) {
                 locationList = body.results.map { it.toLocation() }
@@ -118,14 +140,15 @@ class LocationRepositoryImpl @Inject constructor(
     private suspend fun getLocationsFromApi(locationIdsList: List<Int>): List<Location> {
         lateinit var locationList: List<Location>
         try {
-            val response: Response<List<Result>> =
-                locationRemoteDataSource.getDataByIds(locationIdsList)
+            val response: Response<List<ResultDto>> =
+                locationRemoteDataSource.getLocationsByIds(locationIdsList)
             val body = response.body()
             if (body != null) {
                 locationList = body.map { it.toLocation() }
             }
         } catch (exception: Exception) {
             Log.i(TAG, exception.message.toString())
+            locationList = emptyList()
         }
         return locationList
     }

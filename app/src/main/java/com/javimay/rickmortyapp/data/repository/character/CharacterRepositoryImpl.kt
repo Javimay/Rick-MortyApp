@@ -4,9 +4,11 @@ import android.content.Context
 import android.util.Log
 import com.javimay.rickmortyapp.data.db.entities.Character
 import com.javimay.rickmortyapp.data.model.Data
-import com.javimay.rickmortyapp.data.model.Result
+import com.javimay.rickmortyapp.data.model.ResultDto
+import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
 import com.javimay.rickmortyapp.data.model.relations.CharacterWithEpisode
 import com.javimay.rickmortyapp.data.model.toCharacter
+import com.javimay.rickmortyapp.data.model.toCharacterList
 import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterCacheDataSource
 import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterLocalDataSource
 import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterRemoteDataSource
@@ -26,26 +28,40 @@ class CharacterRepositoryImpl @Inject constructor(
         val TAG = CharacterRepositoryImpl::class.simpleName;
     }
 
-    override suspend fun getCharacters(): List<Character> = getCharactersFromCache()
+    override suspend fun getCharactersData(page: Int?): Data =
+        getCharactersDataFromApi(page)
+
+    override suspend fun getCharacters(): List<Character> = getCharactersFromApi()
     override suspend fun getCharacterById(characterId: Long): Character =
         getCharacterFromCache(characterId)
 
     override suspend fun getCharactersByIds(charactersIds: List<Long>): List<Character> {
         val characterList = getCharactersByIdsFromApi(charactersIds)
-        characterCacheDataSource.saveCharactersToCache(characterList)
-        characterLocalDataSource.saveCharactersToDb(characterList)
+       /* characterCacheDataSource.saveCharactersToCache(characterList)
+        characterLocalDataSource.saveCharactersToDb(characterList)*/
         return characterList
+    }
+
+    override suspend fun saveCharacters(charactersList: List<Character>) {
+        characterCacheDataSource.saveCharactersToCache(charactersList)
+        characterLocalDataSource.saveCharactersToDb(charactersList)
+    }
+
+    override suspend fun saveCharacter(character: Character) {
+        characterCacheDataSource.saveCharacterToCache(character)
+        characterLocalDataSource.saveCharacterToDb(character)
+    }
+
+    override suspend fun saveCharactersWithEpisodes(characterWithEpisodes: CharacterEpisodeCrossRef) {
+        characterCacheDataSource.saveCharactersWithEpisodesToCache(characterWithEpisodes)
+        characterLocalDataSource.saveCharacterWithEpisodeToDb(characterWithEpisodes)
     }
 
     private suspend fun getCharactersByIdsFromApi(charactersIds: List<Long>): List<Character> {
         var characterList = listOf<Character>()
         try {
-            val response =
-                characterRemoteDataSource.getCharactersByIds(charactersIds.map { it.toInt() }
-                    .toIntArray())
-            characterList =
-                response.body()?.let { results -> results.map { it.toCharacter(context) } }
-                    ?: emptyList()
+            val response = characterRemoteDataSource.getCharactersByIds(charactersIds.map { it.toInt() })
+            characterList = response.body()?.toCharacterList(context) ?: emptyList()
         } catch (exception: Exception) {
             Log.i(TAG, exception.message.toString())
         }
@@ -79,7 +95,11 @@ class CharacterRepositoryImpl @Inject constructor(
         if (characterList.isEmpty()) {
             characterList = getCharactersFromDb()
             characterCacheDataSource.saveCharactersToCache(characterList)
-        }
+        } /*else {
+            val idInDb = characterList.map { it.locationId }
+            val locationIdsListToSave = locationIdsList.filterNot { idInDb.contains(it.toLong()) }
+            val newLocationsToSave = getLocationsFromDb(locationIdsListToSave)
+        }*/
         return characterList
     }
 
@@ -148,7 +168,7 @@ class CharacterRepositoryImpl @Inject constructor(
     private suspend fun getCharacterFromApi(characterId: Long): Character {
         lateinit var character: Character
         try {
-            val response: Response<Result> = characterRemoteDataSource.getCharacterById(characterId)
+            val response: Response<ResultDto> = characterRemoteDataSource.getCharacterById(characterId)
             val body = response.body()
             if (body != null) {
                 character = body.toCharacter(context)
@@ -159,25 +179,23 @@ class CharacterRepositoryImpl @Inject constructor(
         return character
     }
 
-    suspend fun getAllCharacterPages(totalPages: Int) {
-        for (page in 2..totalPages) {
-            val responsePage: Response<Data> = characterRemoteDataSource.getDataByPage(page)
-            val bodyPage = responsePage.body()
-            if (bodyPage != null) {
-//                saveToDb(bodyPage)
+    private suspend fun getCharactersDataFromApi(page: Int?): Data {
+        lateinit var characterDataList: Data
+        try {
+            val response: Response<Data> =
+                if (page == null){
+                    characterRemoteDataSource.getData()
+                } else {
+                    characterRemoteDataSource.getDataByPage(page)
+                }
+            val body = response.body()
+            if (body != null) {
+                characterDataList = body
             }
+        } catch (exception: Exception) {
+            Log.e(TAG, exception.message.toString())
+            characterDataList = Data()
         }
-    }
-
-    private suspend fun saveToDb(body: List<Data>) {
-        /*characterLocalDataSource.saveCharactersToDb(
-            body.first().results.map { it.toCharacter(context) }
-        )*/
-    }
-
-    private suspend fun saveToDb(body: Result) {
-        /*characterLocalDataSource.saveCharactersToDb(
-            body.first().results.map { it.toCharacter(context) }
-        )*/
+        return characterDataList
     }
 }

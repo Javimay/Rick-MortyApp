@@ -1,11 +1,11 @@
 package com.javimay.rickmortyapp.data.repository.location.datasource
 
 import com.javimay.rickmortyapp.data.model.Data
-import com.javimay.rickmortyapp.data.model.Result
+import com.javimay.rickmortyapp.data.model.ResultDto
 import retrofit2.Response
 
 interface ILocationRemoteDataSource {
-    suspend fun getData(): Response<Data>
-    suspend fun getDataByIds(episodeIds: List<Int>): Response<List<Result>>
-    suspend fun getDataByPage(page: Int): Response<Data>
+    suspend fun getLocations(): Response<Data>
+    suspend fun getLocationsByIds(locationsIds: List<Int>): Response<List<ResultDto>>
+    suspend fun getLocationsByPage(page: Int): Response<Data>
 }

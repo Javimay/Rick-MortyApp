@@ -27,6 +27,9 @@ interface ILocationDao {
     suspend fun getLocationWithCharacters(): List<LocationWithCharacter>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun saveLocation(location: Location)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun saveLocations(locations: List<Location>)
 
     @Transaction

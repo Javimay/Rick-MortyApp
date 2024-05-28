@@ -10,15 +10,15 @@ import com.javimay.rickmortyapp.utils.LOCATION_TABLE
 @Entity(tableName = LOCATION_TABLE)
 data class Location(
     val created: String,
-    val dimension: String,
+    val dimension: String?,
     @PrimaryKey(autoGenerate = false)
     val locationId: Long,
-    val name: String,
+    val name: String?,
     /*@Relation(
         parentColumn = "locationId", entityColumn = "characterId",
         associateBy = Junction(CharacterLocationCrossRef::class)
     )
     val residents: List<Character>,*/
-    val type: String,
+    val type: String?,
     val url: String
 )

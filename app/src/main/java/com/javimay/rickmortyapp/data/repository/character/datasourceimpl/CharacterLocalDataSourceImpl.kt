@@ -2,6 +2,7 @@ package com.javimay.rickmortyapp.data.repository.character.datasourceimpl
 
 import com.javimay.rickmortyapp.data.db.daos.ICharacterDao
 import com.javimay.rickmortyapp.data.db.entities.Character
+import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
 import com.javimay.rickmortyapp.data.model.relations.CharacterWithEpisode
 import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterLocalDataSource
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,10 @@ class CharacterLocalDataSourceImpl @Inject constructor(
 
     override suspend fun getCharacterWithEpisodeFromDb(characterWithEpisodeId: Long): CharacterWithEpisode =
         characterDao.getCharacterWithEpisodeById(characterWithEpisodeId)
+
+    override suspend fun saveCharacterWithEpisodeToDb(characterWithEpisode: CharacterEpisodeCrossRef) {
+        characterDao.saveCharacterWithEpisodes(characterWithEpisode)
+    }
 
     override suspend fun saveCharactersToDb(characters: List<Character>) {
         CoroutineScope(Dispatchers.IO).launch {

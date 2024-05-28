@@ -9,12 +9,7 @@ import com.javimay.rickmortyapp.utils.EPISODE_TABLE
 
 @Entity(tableName = EPISODE_TABLE)
 data class Episode(
-    val airDate: String,
-    /*@Relation(
-        parentColumn = "episodeId", entityColumn = "characterId"*//*,
-        associateBy = Junction(CharacterEpisodeCrossRef::class)*//*
-    )
-    val characters: List<Character>,*/
+    val airDate: String?,
     val created: String,
     val episode: String,
     @PrimaryKey(autoGenerate = false)

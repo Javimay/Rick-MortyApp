@@ -18,7 +18,11 @@ class LocationLocalDataSourceImpl @Inject constructor(
     override suspend fun getLocationsByIdsFromDb(locationsIds: List<Long>): List<Location> =
         locationDao.getLocationsByIds(locationsIds)
 
-    override suspend fun saveLocationToDb(locations: List<Location>) =
+    override suspend fun saveLocationToDb(location: Location) {
+        locationDao.saveLocation(location)
+    }
+
+    override suspend fun saveLocationsToDb(locations: List<Location>) =
         locationDao.saveLocations(locations)
 
     override suspend fun saveLocationWithCharactersToDb(locationWithCharacters: CharacterLocationCrossRef) {

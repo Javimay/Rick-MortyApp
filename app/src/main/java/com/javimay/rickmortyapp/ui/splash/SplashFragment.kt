@@ -22,8 +22,6 @@ class SplashFragment : Fragment() {
     private val splashViewModel: SplashFragmentViewModel by viewModels()
     private lateinit var navController: NavController
     private var animationObserver = Observer<Boolean> { splashViewModel.animFinished }
-    private var dataObserver = Observer<Boolean> { splashViewModel.animFinished }
-    private lateinit var dataList: List<MutableList<Data>>
     private var animFinished = false
     private var charactersDownloaded = false
 
@@ -34,7 +32,8 @@ class SplashFragment : Fragment() {
         binding = FragmentSplashBinding.inflate(inflater, container, false)
         navController = findNavController()
         splashViewModel.animFinished.observe(viewLifecycleOwner) {
-            if (it) verifyData()
+            animFinished = it
+             verifyData()
         }
         splashViewModel.logoAppear(binding.ivLogo)
         downloadData()
