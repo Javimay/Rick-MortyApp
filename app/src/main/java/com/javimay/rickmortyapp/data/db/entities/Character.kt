@@ -5,6 +5,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.javimay.rickmortyapp.data.model.CharacterDto
 import com.javimay.rickmortyapp.utils.CHARACTER_TABLE
 
 @Entity(
@@ -24,22 +25,13 @@ import com.javimay.rickmortyapp.utils.CHARACTER_TABLE
 )
 data class Character(
     val created: String,
-
-    /*@Relation(
-        parentColumn = "characterId", entityColumn = "episodeId"*//*,
-        associateBy = Junction(CharacterEpisodeCrossRef::class)*//*
-    )
-    val episode: List<Episode>,*/
-
     val gender: String,
     @PrimaryKey(autoGenerate = false)
     val characterId: Long,
     val image: Bitmap,
-//    @Relation(parentColumn = "location", entityColumn = "locationId")
     @ColumnInfo(index = true)
     val locationId: Long,
     val name: String,
-//    @Relation(parentColumn = "origin", entityColumn = "locationId")
     @ColumnInfo(index = true)
     val originId: Long,
     val species: String,
@@ -47,3 +39,18 @@ data class Character(
     val type: String,
     val url: String
 )
+
+fun Character.toCharacterDto(): CharacterDto =
+    CharacterDto(
+        this.created,
+        this.gender,
+        this.characterId,
+        this.image,
+        this.locationId,
+        this.name,
+        this.originId,
+        this.species,
+        this.status,
+        this.type,
+        this.url
+    )

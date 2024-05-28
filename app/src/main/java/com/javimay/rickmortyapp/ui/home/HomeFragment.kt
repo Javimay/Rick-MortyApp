@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.javimay.rickmortyapp.R
 import com.javimay.rickmortyapp.data.db.entities.Character
+import com.javimay.rickmortyapp.data.db.entities.toCharacterDto
 import com.javimay.rickmortyapp.databinding.FragmentHomeBinding
 import com.javimay.rickmortyapp.ui.adapters.RecyclerViewAdapter
 import dagger.hilt.android.AndroidEntryPoint
@@ -67,7 +68,8 @@ class HomeFragment : Fragment() {
 
     private fun goToContentCharacterFragment(character: Character) {
         val action = HomeFragmentDirections.actionHomeFragmentToCharacterFragment(
-            character.characterId
+            character.characterId,
+            character.toCharacterDto()
         )
         navController.navigate(action)
     }
