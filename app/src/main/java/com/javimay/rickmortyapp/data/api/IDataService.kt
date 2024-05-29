@@ -17,29 +17,29 @@ interface IDataService {
     @GET(GET_CHARACTER)
     suspend fun getCharacters(): Response<Data>
 
-    @GET("$GET_CHARACTER/{page}")
-    suspend fun getCharacterByPage(@Path("page") page: Int): Response<Data>
+    @GET(GET_CHARACTER)
+    suspend fun getCharacterByPage(@Query("page") page: Int): Response<Data>
 
-    @GET("$GET_CHARACTER/{characterId}")
-    suspend fun getCharacterById(@Query("characterId")characterId: Long): Response<ResultDto>
+    @GET("$GET_CHARACTER/")
+    suspend fun getCharacterById(@Path("characterId")characterId: Long): Response<ResultDto>
 
-    @GET("$GET_CHARACTER/{charactersIds}")
+    @GET("$GET_CHARACTER/")
     suspend fun getCharactersByIds(@Path("charactersIds")charactersIds: String): Response<List<ResultDto>>
 
     @GET(GET_EPISODES)
     suspend fun getEpisodes(): Response<EpisodeData>
 
-    @GET("$GET_EPISODES/{page}")
-    suspend fun getEpisodesByPage(@Path("page") page: Int): Response<EpisodeData>
+    @GET(GET_EPISODES)
+    suspend fun getEpisodesByPage(@Query("page") page: Int): Response<EpisodeData>
 
-    @GET("$GET_EPISODES/{episodeIds}")
+    @GET("$GET_EPISODES/")
     suspend fun getEpisodesByIds(@Path("episodeIds")episodeIds: String): Response<List<EpisodeResult>>
 
     @GET(GET_LOCATIONS)
     suspend fun getLocations(): Response<Data>
 
-    @GET("$GET_LOCATIONS/{page}")
+    @GET(GET_LOCATIONS)
     suspend fun getLocationsByPage(@Query("page") page: Int): Response<Data>
-    @GET("$GET_LOCATIONS/{locationIds}")
+    @GET("$GET_LOCATIONS/")
     suspend fun getLocationsByIds(@Path("locationIds")locationIds: String): Response<List<ResultDto>>
 }

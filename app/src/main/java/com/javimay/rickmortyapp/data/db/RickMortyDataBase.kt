@@ -12,6 +12,7 @@ import com.javimay.rickmortyapp.data.db.entities.Location
 import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
 import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
 import com.javimay.rickmortyapp.data.model.typesconverter.ImageTypeConverter
+import com.javimay.rickmortyapp.data.model.typesconverter.StringListTypeConverter
 
 @Database(
     entities = [
@@ -25,9 +26,10 @@ import com.javimay.rickmortyapp.data.model.typesconverter.ImageTypeConverter
     exportSchema = false
 )
 @TypeConverters(
-   ImageTypeConverter::class
+    ImageTypeConverter::class,
+    StringListTypeConverter::class
 )
-abstract class RickMortyDataBase: RoomDatabase() {
+abstract class RickMortyDataBase : RoomDatabase() {
     abstract fun characterDao(): ICharacterDao
     abstract fun episodeDao(): IEpisodeDao
     abstract fun locationDao(): ILocationDao

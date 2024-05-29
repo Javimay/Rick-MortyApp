@@ -6,7 +6,6 @@ import com.javimay.rickmortyapp.data.model.EpisodeData
 import com.javimay.rickmortyapp.data.model.relations.EpisodeWithCharacter
 
 interface IEpisodeRepository {
-    suspend fun getEpisodesData(): EpisodeData
     suspend fun getEpisodes(): List<Episode>
     suspend fun getEpisodesFromIds(episodeIdsList: List<Int>): List<Episode>
 

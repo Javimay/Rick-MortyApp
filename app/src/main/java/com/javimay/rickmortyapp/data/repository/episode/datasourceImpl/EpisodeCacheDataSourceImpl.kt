@@ -5,38 +5,35 @@ import com.javimay.rickmortyapp.data.model.relations.EpisodeWithCharacter
 import com.javimay.rickmortyapp.data.repository.episode.datasource.IEpisodeCacheDataSource
 import javax.inject.Inject
 
-class EpisodeCacheDataSourceImpl @Inject constructor(): IEpisodeCacheDataSource {
+class EpisodeCacheDataSourceImpl @Inject constructor() : IEpisodeCacheDataSource {
 
-    private val episodeList = mutableListOf<Episode>()
-    private val episodesWithCharactersList = mutableListOf<EpisodeWithCharacter>()
+    private val episodeListCache = mutableSetOf<Episode>()
+    private val episodesWithCharactersListCache = mutableSetOf<EpisodeWithCharacter>()
 
-    override suspend fun getEpisodesFromCache(): List<Episode> = episodeList
+    override suspend fun getEpisodesFromCache(): List<Episode> = episodeListCache.toList()
+    override suspend fun getEpisodeByIdFromCache(episodeId: Long): Episode? =
+        episodeListCache.find { it.episodeId == episodeId }
 
-    override suspend fun getEpisodesByIdsFromCache(episodeIdsList: List<Int>): List<Episode> =
-        episodeList.filter{ episode -> episode.episodeId in episodeIdsList.map { it.toLong() } }
-
+    override suspend fun getEpisodesByIdsFromCache(episodeIds: List<Long>): List<Episode> =
+        episodeListCache.filter { episode -> episodeIds.contains(episode.episodeId) }
 
     override suspend fun getEpisodeFromCache(episodeId: Long): Episode? =
-        episodeList.find { it.episodeId == episodeId }
+        episodeListCache.find { it.episodeId == episodeId }
 
     override suspend fun saveEpisodesToCache(episodes: List<Episode>) {
-        episodeList.clear()
-        episodeList.addAll(episodes)
+        episodeListCache.addAll(episodes)
     }
 
     override suspend fun getEpisodesWithCharactersFromCache(): List<EpisodeWithCharacter> =
-        episodesWithCharactersList
+        episodesWithCharactersListCache.toList()
 
     override suspend fun getEpisodesWithCharactersByIdFromCache(episodeId: Int): EpisodeWithCharacter? =
-        episodesWithCharactersList.getOrNull(episodeId)
-
-    override suspend fun saveEpisodeWithCharactersToCache(episodeWithCharacters: EpisodeWithCharacter) {
-        episodesWithCharactersList.add(episodeWithCharacters)
-    }
+        episodesWithCharactersListCache.find { it.episode.episodeId == episodeId.toLong() }
 
     override suspend fun saveEpisodeToCache(episode: Episode) {
-        episodeList.clear()
-        episodeList.add(episode)
+        episodeListCache.add(episode)
     }
-
+    override suspend fun saveEpisodeWithCharactersToCache(episodeWithCharacters: EpisodeWithCharacter) {
+        episodesWithCharactersListCache.add(episodeWithCharacters)
+    }
 }

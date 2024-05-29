@@ -5,10 +5,8 @@ import com.javimay.rickmortyapp.data.model.ResultDto
 import retrofit2.Response
 
 interface ICharacterRemoteDataSource {
-
-    suspend fun getData(): Response<Data>
+    suspend fun getCharacters(): Response<Data>
     suspend fun getCharacterById(characterId: Long): Response<ResultDto>
-
     suspend fun getCharactersByIds(charactersIds: List<Int>): Response<List<ResultDto>>
-    suspend fun getDataByPage(page: Int): Response<Data>
+    suspend fun getCharactersByPage(page: Int): Response<Data>
 }

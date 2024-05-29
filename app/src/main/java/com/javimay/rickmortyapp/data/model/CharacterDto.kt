@@ -10,6 +10,7 @@ data class CharacterDto(
     val gender: String,
     val characterId: Long,
     val image: Bitmap,
+    val episodeList: List<String>,
     val locationId: Long,
     val name: String,
     val originId: Long,

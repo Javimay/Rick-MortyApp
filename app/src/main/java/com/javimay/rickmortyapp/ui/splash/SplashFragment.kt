@@ -5,6 +5,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.NavController
@@ -33,11 +35,16 @@ class SplashFragment : Fragment() {
         navController = findNavController()
         splashViewModel.animFinished.observe(viewLifecycleOwner) {
             animFinished = it
-             verifyData()
+            showLoader(it)
+            verifyData()
         }
         splashViewModel.logoAppear(binding.ivLogo)
         downloadData()
         return binding.root
+    }
+
+    private fun showLoader(show: Boolean) {
+        binding.pbLoader.isInvisible = !show
     }
 
     private fun downloadData() {
@@ -48,7 +55,10 @@ class SplashFragment : Fragment() {
     }
 
     private fun verifyData() {
-        if (charactersDownloaded && animFinished) goToHomeScreen()
+        if (charactersDownloaded && animFinished) {
+            showLoader(false)
+            goToHomeScreen()
+        }
     }
 
     private fun goToHomeScreen() {

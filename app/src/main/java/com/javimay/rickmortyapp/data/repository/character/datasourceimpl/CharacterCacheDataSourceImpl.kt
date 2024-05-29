@@ -2,6 +2,7 @@ package com.javimay.rickmortyapp.data.repository.character.datasourceimpl
 
 import com.javimay.rickmortyapp.data.db.entities.Character
 import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
+import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
 import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterCacheDataSource
 import javax.inject.Inject
 
@@ -9,6 +10,7 @@ class CharacterCacheDataSourceImpl @Inject constructor() : ICharacterCacheDataSo
 
     private var characterList = mutableListOf<Character>()
     private var characterWithEpisodesList = mutableListOf<CharacterEpisodeCrossRef>()
+    private var characterWithLocationsList = mutableListOf<CharacterLocationCrossRef>()
 
     override suspend fun getCharactersFromCache(): List<Character> = characterList
 
@@ -21,9 +23,14 @@ class CharacterCacheDataSourceImpl @Inject constructor() : ICharacterCacheDataSo
         characterList.addAll(character)
     }
 
-    override suspend fun saveCharactersWithEpisodesToCache(characterWithEpisodes: CharacterEpisodeCrossRef) {
+    override suspend fun saveCharactersWithEpisodesToCache(charactersWithEpisodes: List<CharacterEpisodeCrossRef>) {
         characterWithEpisodesList.clear()
-        characterWithEpisodesList.add(characterWithEpisodes)
+        characterWithEpisodesList.addAll(charactersWithEpisodes)
+    }
+
+    override suspend fun saveCharactersWithLocationsToCache(charactersWithLocations: List<CharacterLocationCrossRef>) {
+        characterWithLocationsList.clear()
+        characterWithLocationsList.addAll(charactersWithLocations)
     }
 
     override suspend fun saveCharacterToCache(character: Character) {

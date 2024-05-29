@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.javimay.rickmortyapp.data.db.entities.Character
 import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
+import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
 import com.javimay.rickmortyapp.data.model.relations.CharacterWithEpisode
 import com.javimay.rickmortyapp.utils.CHARACTER_TABLE
 
@@ -33,8 +34,25 @@ interface ICharacterDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun saveCharacter(character: Character)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun saveCharacterWithEpisodes(characterWithEpisode: CharacterEpisodeCrossRef)
+    @Transaction
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveCharacterWithEpisodes(
+        characterWithEpisode: CharacterEpisodeCrossRef) : Long
+
+    @Transaction
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveCharactersWithEpisodes(
+        characterWithEpisode: List<CharacterEpisodeCrossRef>): List<Long>
+
+    @Transaction
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveCharacterWithLocations(
+        characterWithLocation: CharacterLocationCrossRef): Long
+
+    @Transaction
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveCharactersWithLocations(
+        charactersWithLocation: List<CharacterLocationCrossRef>): List<Long>
 
     @Query("DELETE FROM $CHARACTER_TABLE")
     suspend fun deleteCharacters()

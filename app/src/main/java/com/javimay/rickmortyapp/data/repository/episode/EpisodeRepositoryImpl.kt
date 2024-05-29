@@ -2,17 +2,17 @@ package com.javimay.rickmortyapp.data.repository.episode
 
 import android.util.Log
 import com.javimay.rickmortyapp.data.db.entities.Episode
-import com.javimay.rickmortyapp.data.model.Data
 import com.javimay.rickmortyapp.data.model.EpisodeData
 import com.javimay.rickmortyapp.data.model.EpisodeResult
 import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
 import com.javimay.rickmortyapp.data.model.relations.EpisodeWithCharacter
 import com.javimay.rickmortyapp.data.model.toEpisodeEntity
-import com.javimay.rickmortyapp.data.model.toEpisodeEntityList
 import com.javimay.rickmortyapp.data.repository.episode.datasource.IEpisodeCacheDataSource
 import com.javimay.rickmortyapp.data.repository.episode.datasource.IEpisodeLocalDataSource
 import com.javimay.rickmortyapp.data.repository.episode.datasource.IEpisodeRemoteDataSource
 import com.javimay.rickmortyapp.domain.repository.IEpisodeRepository
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.first
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -26,17 +26,24 @@ class EpisodeRepositoryImpl @Inject constructor(
         val TAG = EpisodeRepositoryImpl::class.simpleName;
     }
 
-    override suspend fun getEpisodesData(): EpisodeData = getEpisodesDataFromApi()
-
-    override suspend fun getEpisodes(): List<Episode> = getEpisodesFromCache()
+    override suspend fun getEpisodes(): List<Episode> = getEpisodesByIdsFromCache()
 
     override suspend fun getEpisodesFromIds(episodeIdsList: List<Int>): List<Episode> =
-        getEpisodesFromCache(episodeIdsList)
+        getEpisodesByIdsFromCache(episodeIdsList)
+
+    override suspend fun saveEpisodes(episodes: List<Episode>) {
+        episodeCacheDataSource.saveEpisodesToCache(episodes)
+        episodeLocalDataSource.saveEpisodesToDb(episodes)
+    }
+
+    override suspend fun saveEpisode(episode: Episode) {
+        episodeCacheDataSource.saveEpisodeToCache(episode)
+        episodeLocalDataSource.saveEpisodeToDb(episode)
+    }
 
     override suspend fun saveEpisodeWithCharacters(episodeWithCharacters: EpisodeWithCharacter) {
         saveEpisodeWithCharactersToCache(episodeWithCharacters)
     }
-
 
     private suspend fun saveEpisodeWithCharactersToCache(episodeWithCharacters: EpisodeWithCharacter) {
         episodeCacheDataSource.saveEpisodeWithCharactersToCache(episodeWithCharacters)
@@ -47,43 +54,44 @@ class EpisodeRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun getEpisodesFromCache(episodeIdsList: List<Int>): List<Episode> {
-        var episodeList = listOf<Episode>()
+    private suspend fun getEpisodesByIdsFromCache(): List<Episode> {
+        lateinit var episodeList: List<Episode>
         try {
-            episodeList = episodeCacheDataSource.getEpisodesByIdsFromCache(episodeIdsList)
+            Log.i(TAG, "GetEpisodes")
+            episodeList = episodeCacheDataSource.getEpisodesFromCache()
         } catch (exception: Exception) {
             Log.i(TAG, exception.message.toString())
         }
         if (episodeList.isEmpty()) {
-            episodeList = getEpisodesFromDb(episodeIdsList)
+            episodeList = getEpisodesByIdsFromDb()
+            episodeCacheDataSource.saveEpisodesToCache(episodeList)
+            Log.i(TAG, "Episodes saved to Cache")
+        }
+        return episodeList
+    }
+
+    private suspend fun getEpisodesByIdsFromCache(episodeIdsList: List<Int>): List<Episode> {
+        var episodeList = listOf<Episode>()
+        try {
+            episodeList =
+                episodeCacheDataSource.getEpisodesByIdsFromCache(episodeIdsList.map { it.toLong() })
+        } catch (exception: Exception) {
+            Log.i(TAG, exception.message.toString())
+        }
+        if (episodeList.isEmpty()) {
+            episodeList = getEpisodesByIdsFromDb(episodeIdsList)
             episodeCacheDataSource.saveEpisodesToCache(episodeList)
         } else {
             val idInDb = episodeList.map { it.episodeId }
             val locationIdsListToSave = episodeIdsList.filterNot { idInDb.contains(it.toLong()) }
-            if (locationIdsListToSave.isNotEmpty()){
-                getEpisodesFromDb(locationIdsListToSave)
+            if (locationIdsListToSave.isNotEmpty()) {
+                getEpisodesByIdsFromDb(locationIdsListToSave)
             }
         }
         return episodeList
     }
 
-
-     private suspend fun getEpisodesFromCache(): List<Episode> {
-         lateinit var episodeList: List<Episode>
-
-         try {
-             episodeList = episodeCacheDataSource.getEpisodesFromCache()
-         } catch (exception: Exception) {
-             Log.i(TAG, exception.message.toString())
-         }
-         if (episodeList.isEmpty()) {
-             episodeList = getEpisodesFromDb()
-             episodeCacheDataSource.saveEpisodesToCache(episodeList)
-         }
-         return episodeList
-     }
-
-    private suspend fun getEpisodesFromDb(): List<Episode> {
+    private suspend fun getEpisodesByIdsFromDb(): List<Episode> {
         lateinit var episodeList: List<Episode>
         try {
             episodeList = episodeLocalDataSource.getEpisodesFromDb()
@@ -93,11 +101,13 @@ class EpisodeRepositoryImpl @Inject constructor(
         }
         if (episodeList.isEmpty()) {
             episodeList = getEpisodesFromApi()
+            episodeLocalDataSource.saveEpisodesToDb(episodeList)
+            Log.i(TAG, "All episodes saved to Db")
         }
         return episodeList
     }
 
-    private suspend fun getEpisodesFromDb(episodeIdsList: List<Int>): List<Episode> {
+    private suspend fun getEpisodesByIdsFromDb(episodeIdsList: List<Int>): List<Episode> {
         var episodeList: List<Episode>
         try {
             episodeList =
@@ -112,20 +122,6 @@ class EpisodeRepositoryImpl @Inject constructor(
         }
         return episodeList
     }
-
-    /*private suspend fun getCharacterFromDb(characterId: Long): CharacterWithEpisode {
-        var character: CharacterWithEpisode?
-        try {
-            character = characterLocalDataSource.getCharacterFromDb(characterId)
-        } catch (exception: Exception) {
-            Log.i(TAG, exception.message.toString())
-            character = null
-        }
-        if (character == null) {
-            character = getCharacterFromApi(characterId)
-        }
-        return character
-    }*/
 
     private suspend fun getEpisodesFromApi(episodeIdsList: List<Int>): List<Episode> {
         lateinit var episodeList: List<Episode>
@@ -144,42 +140,38 @@ class EpisodeRepositoryImpl @Inject constructor(
     }
 
     private suspend fun getEpisodesFromApi(): List<Episode> {
-        lateinit var episodeList: List<Episode>
+        val episodeList = mutableSetOf<Episode>()
         try {
             val response: Response<EpisodeData> = episodeRemoteDataSource.getEpisodesData()
             val body = response.body()
-            if (body != null) {
-                episodeList = body.results.map { it.toEpisodeEntity() }
-                saveEpisodes(episodeList)
+            body?.let { episodeData ->
+                episodeList.addAll(episodeData.results.map { it.toEpisodeEntity() })
+                //Iterate all pages to get Episodes Data
+                episodeList.addAll(fetchAllEpisodes(episodeData.info.pages))
+                Log.i(TAG, "All episodes fetched")
             }
         } catch (exception: Exception) {
             Log.i(TAG, exception.message.toString())
         }
-        return episodeList
+        return episodeList.toList()
     }
 
-    private suspend fun getEpisodesDataFromApi(): EpisodeData {
-        lateinit var episodeData: EpisodeData
+    private suspend fun fetchAllEpisodes(totalPages: Int) = callbackFlow {
+        val episodeList = mutableSetOf<Episode>()
         try {
-            val response: Response<EpisodeData> = episodeRemoteDataSource.getEpisodesData()
-            val body = response.body()
-            if (body != null) {
-                episodeData = body
-                saveEpisodes(body.results.toEpisodeEntityList())
+            for (page in 2..totalPages) {
+                val response = episodeRemoteDataSource.getEpisodesByPage(page)
+                response.body().let {
+                    it?.results?.let { listEpisodeResult ->
+                        episodeList.addAll(listEpisodeResult.map { episodeResult ->
+                            episodeResult.toEpisodeEntity() })
+                    }
+                }
             }
-        } catch (exception: Exception) {
+        } catch (exception: Exception){
             Log.i(TAG, exception.message.toString())
         }
-        return episodeData
-    }
-
-    override suspend fun saveEpisodes(episodes: List<Episode>) {
-        episodeCacheDataSource.saveEpisodesToCache(episodes)
-        episodeLocalDataSource.saveEpisodesToDb(episodes)
-    }
-
-    override suspend fun saveEpisode(episode: Episode) {
-        episodeCacheDataSource.saveEpisodeToCache(episode)
-        episodeLocalDataSource.saveEpisodeToDb(episode)
-    }
+        trySend(episodeList)
+        close()
+    }.first()
 }

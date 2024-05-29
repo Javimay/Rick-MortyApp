@@ -6,6 +6,7 @@ import com.javimay.rickmortyapp.data.db.entities.Character
 import com.javimay.rickmortyapp.data.model.Data
 import com.javimay.rickmortyapp.data.model.ResultDto
 import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
+import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
 import com.javimay.rickmortyapp.data.model.relations.CharacterWithEpisode
 import com.javimay.rickmortyapp.data.model.toCharacter
 import com.javimay.rickmortyapp.data.model.toCharacterList
@@ -13,7 +14,10 @@ import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterC
 import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterLocalDataSource
 import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterRemoteDataSource
 import com.javimay.rickmortyapp.domain.repository.ICharacterRepository
+import com.javimay.rickmortyapp.utils.MAX_PAGE_SIZE
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.first
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -28,17 +32,12 @@ class CharacterRepositoryImpl @Inject constructor(
         val TAG = CharacterRepositoryImpl::class.simpleName;
     }
 
-    override suspend fun getCharactersData(page: Int?): Data =
-        getCharactersDataFromApi(page)
-
-    override suspend fun getCharacters(): List<Character> = getCharactersFromApi()
+    override suspend fun getCharacters(): List<Character> = getCharactersFromCache()
     override suspend fun getCharacterById(characterId: Long): Character =
         getCharacterFromCache(characterId)
 
     override suspend fun getCharactersByIds(charactersIds: List<Long>): List<Character> {
         val characterList = getCharactersByIdsFromApi(charactersIds)
-       /* characterCacheDataSource.saveCharactersToCache(characterList)
-        characterLocalDataSource.saveCharactersToDb(characterList)*/
         return characterList
     }
 
@@ -52,15 +51,25 @@ class CharacterRepositoryImpl @Inject constructor(
         characterLocalDataSource.saveCharacterToDb(character)
     }
 
-    override suspend fun saveCharactersWithEpisodes(characterWithEpisodes: CharacterEpisodeCrossRef) {
-        characterCacheDataSource.saveCharactersWithEpisodesToCache(characterWithEpisodes)
-        characterLocalDataSource.saveCharacterWithEpisodeToDb(characterWithEpisodes)
+    override suspend fun saveCharactersWithEpisodesList(
+        characterWithEpisodesList: List<CharacterEpisodeCrossRef>): Boolean {
+        characterCacheDataSource.saveCharactersWithEpisodesToCache(characterWithEpisodesList)
+        val inserted = characterLocalDataSource.saveCharactersWithEpisodesToDb(characterWithEpisodesList)
+        return inserted.isNotEmpty()
+    }
+
+    override suspend fun saveCharactersWithLocationsList(
+        characterWithLocationsList: List<CharacterLocationCrossRef>): Boolean {
+            characterCacheDataSource.saveCharactersWithLocationsToCache(characterWithLocationsList)
+            val inserted = characterLocalDataSource.saveCharactersWithLocationsToDb(characterWithLocationsList)
+            return inserted.isNotEmpty()
     }
 
     private suspend fun getCharactersByIdsFromApi(charactersIds: List<Long>): List<Character> {
         var characterList = listOf<Character>()
         try {
-            val response = characterRemoteDataSource.getCharactersByIds(charactersIds.map { it.toInt() })
+            val response =
+                characterRemoteDataSource.getCharactersByIds(charactersIds.map { it.toInt() })
             characterList = response.body()?.toCharacterList(context) ?: emptyList()
         } catch (exception: Exception) {
             Log.i(TAG, exception.message.toString())
@@ -77,7 +86,7 @@ class CharacterRepositoryImpl @Inject constructor(
             character = null;
         }
         if (character == null) {
-            character = getCharacterFromDb(characterId)
+            character = getCharacterByIdFromDb(characterId)
             characterCacheDataSource.saveCharacterToCache(character)
         }
         return character
@@ -86,7 +95,7 @@ class CharacterRepositoryImpl @Inject constructor(
 
     private suspend fun getCharactersFromCache(): List<Character> {
         lateinit var characterList: List<Character>
-
+        Log.i(TAG, "Get Characters init")
         try {
             characterList = characterCacheDataSource.getCharactersFromCache()
         } catch (exception: Exception) {
@@ -95,11 +104,8 @@ class CharacterRepositoryImpl @Inject constructor(
         if (characterList.isEmpty()) {
             characterList = getCharactersFromDb()
             characterCacheDataSource.saveCharactersToCache(characterList)
-        } /*else {
-            val idInDb = characterList.map { it.locationId }
-            val locationIdsListToSave = locationIdsList.filterNot { idInDb.contains(it.toLong()) }
-            val newLocationsToSave = getLocationsFromDb(locationIdsListToSave)
-        }*/
+            Log.i(TAG, "Characters saved to Cache")
+        }
         return characterList
     }
 
@@ -113,11 +119,13 @@ class CharacterRepositoryImpl @Inject constructor(
         }
         if (characterList.isEmpty()) {
             characterList = getCharactersFromApi()
+            characterLocalDataSource.saveCharactersToDb(characterList)
+            Log.i(TAG, "Characters saved to Db")
         }
         return characterList
     }
 
-    private suspend fun getCharacterFromDb(characterId: Long): Character {
+    private suspend fun getCharacterByIdFromDb(characterId: Long): Character {
         var character: Character?
         try {
             character = characterLocalDataSource.getCharacterFromDb(characterId)
@@ -126,7 +134,7 @@ class CharacterRepositoryImpl @Inject constructor(
             character = null
         }
         if (character == null) {
-            character = getCharacterFromApi(characterId)
+            character = getCharacterByIdFromApi(characterId)
         }
         return character
     }
@@ -134,7 +142,8 @@ class CharacterRepositoryImpl @Inject constructor(
     private suspend fun getCharacterWithEpisodeFromDb(characterWithEpisodeId: Long): CharacterWithEpisode? {
         var characterWithEpisode: CharacterWithEpisode?
         try {
-            characterWithEpisode = characterLocalDataSource.getCharacterWithEpisodeFromDb(characterWithEpisodeId)
+            characterWithEpisode =
+                characterLocalDataSource.getCharacterWithEpisodeFromDb(characterWithEpisodeId)
         } catch (exception: Exception) {
             Log.i(TAG, exception.message.toString())
             characterWithEpisode = null
@@ -144,31 +153,29 @@ class CharacterRepositoryImpl @Inject constructor(
     }
 
     private suspend fun getCharactersFromApi(): List<Character> {
-        lateinit var characterList: List<Character>
+        val characterList = mutableSetOf<Character>()
+        Log.i(TAG, "get Characters from Api init")
         try {
-            val response: Response<Data> = characterRemoteDataSource.getData()
+            val response: Response<Data> = characterRemoteDataSource.getCharacters()
             val body = response.body()
-            if (body != null) {
-                characterList = body.results.map { it.toCharacter(context) }
-                /*CoroutineScope(Dispatchers.IO).launch {
-                    saveToDb(body)
-                }
-                totalPages = body[0].info.pages //TODO: Divide in half
-                CoroutineScope(Dispatchers.IO).launch {
-                    getAllCharacterPages(totalPages)
-                }*/
-//                characterList = body.first().results.map { it.toCharacter(context) }
+            body?.let { characterData ->
+                characterList.addAll(body.results.map { it.toCharacter(context) })
+                characterList.addAll(characterData.results.map { it.toCharacter(context) })
+                //Iterate all pages to get Character Data
+                characterList.addAll(fetchAllCharacters())
+                Log.i(TAG,"characters fetched: ${characterList.size}")
             }
         } catch (exception: Exception) {
             Log.i(TAG, exception.message.toString())
         }
-        return characterList
+        return characterList.toList()
     }
 
-    private suspend fun getCharacterFromApi(characterId: Long): Character {
+    private suspend fun getCharacterByIdFromApi(characterId: Long): Character {
         lateinit var character: Character
         try {
-            val response: Response<ResultDto> = characterRemoteDataSource.getCharacterById(characterId)
+            val response: Response<ResultDto> =
+                characterRemoteDataSource.getCharacterById(characterId)
             val body = response.body()
             if (body != null) {
                 character = body.toCharacter(context)
@@ -179,23 +186,23 @@ class CharacterRepositoryImpl @Inject constructor(
         return character
     }
 
-    private suspend fun getCharactersDataFromApi(page: Int?): Data {
-        lateinit var characterDataList: Data
+    private suspend fun fetchAllCharacters() = callbackFlow {
+        val characterList = mutableSetOf<Character>()
         try {
-            val response: Response<Data> =
-                if (page == null){
-                    characterRemoteDataSource.getData()
-                } else {
-                    characterRemoteDataSource.getDataByPage(page)
+            for (page in 2..MAX_PAGE_SIZE) {
+                val response = characterRemoteDataSource.getCharactersByPage(page)
+                response.body().let {
+                    it?.results?.let { listCharacterResult ->
+                        characterList.addAll(listCharacterResult.map { characterResult ->
+                            characterResult.toCharacter(context)
+                        })
+                    }
                 }
-            val body = response.body()
-            if (body != null) {
-                characterDataList = body
             }
         } catch (exception: Exception) {
-            Log.e(TAG, exception.message.toString())
-            characterDataList = Data()
+            Log.i(TAG, exception.message.toString())
         }
-        return characterDataList
-    }
+        trySend(characterList)
+        close()
+    }.first()
 }

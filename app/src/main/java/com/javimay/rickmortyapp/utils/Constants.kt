@@ -15,3 +15,4 @@ const val EPISODE_TABLE = "episodes"
 
 //Other constants
 const val SECOND = 1000L
+const val MAX_PAGE_SIZE = 2

@@ -6,6 +6,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.javimay.rickmortyapp.data.model.CharacterDto
+import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
 import com.javimay.rickmortyapp.utils.CHARACTER_TABLE
 
 @Entity(
@@ -29,6 +30,7 @@ data class Character(
     @PrimaryKey(autoGenerate = false)
     val characterId: Long,
     val image: Bitmap,
+    val episodeList: List<String>,
     @ColumnInfo(index = true)
     val locationId: Long,
     val name: String,
@@ -46,6 +48,7 @@ fun Character.toCharacterDto(): CharacterDto =
         this.gender,
         this.characterId,
         this.image,
+        this.episodeList,
         this.locationId,
         this.name,
         this.originId,

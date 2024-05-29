@@ -34,6 +34,7 @@ suspend fun ResultDto.toCharacter(context: Context): Character {
         this.gender,
         this.id.toLong(),
         getBitmap(context, this.image),
+        this.episode,
         getIdFromString(this.location.url).toLong(),
         this.name,
         getIdFromString(this.origin.url).toLong(),
@@ -57,4 +58,8 @@ suspend fun ResultDto.toLocation(): Location {
         this.type,
         this.url,
     )
+}
+
+suspend fun List<ResultDto>.toLocationList(): List<Location> {
+    return map { it.toLocation() }
 }

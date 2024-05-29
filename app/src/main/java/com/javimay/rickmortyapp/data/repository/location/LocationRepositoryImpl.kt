@@ -7,10 +7,14 @@ import com.javimay.rickmortyapp.data.model.ResultDto
 import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
 import com.javimay.rickmortyapp.data.model.relations.LocationWithCharacter
 import com.javimay.rickmortyapp.data.model.toLocation
+import com.javimay.rickmortyapp.data.model.toLocationList
+import com.javimay.rickmortyapp.data.repository.episode.EpisodeRepositoryImpl
 import com.javimay.rickmortyapp.data.repository.location.datasource.ILocationCacheDataSource
 import com.javimay.rickmortyapp.data.repository.location.datasource.ILocationLocalDataSource
 import com.javimay.rickmortyapp.data.repository.location.datasource.ILocationRemoteDataSource
 import com.javimay.rickmortyapp.domain.repository.ILocationRepository
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.first
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -18,12 +22,13 @@ class LocationRepositoryImpl @Inject constructor(
     private val locationCacheDataSource: ILocationCacheDataSource,
     private val locationLocalDataSource: ILocationLocalDataSource,
     private val locationRemoteDataSource: ILocationRemoteDataSource
-): ILocationRepository {
+) : ILocationRepository {
 
     companion object {
         val TAG = LocationRepositoryImpl::class.simpleName;
     }
-    override suspend fun getLocations(): List<Location> = getLocationsFromDb()
+
+    override suspend fun getLocations(): List<Location> = getLocationsFromCache()
 
     override suspend fun getLocationsFromIds(locationIdsList: List<Int>): List<Location> =
         getLocationsFromCache(locationIdsList)
@@ -41,15 +46,17 @@ class LocationRepositoryImpl @Inject constructor(
         locationCacheDataSource.saveLocationWithCharactersToCache(locationWithCharacters)
         locationWithCharacters.characters.forEach {
             locationLocalDataSource.saveLocationWithCharactersToDb(
-                CharacterLocationCrossRef(it.characterId, locationWithCharacters.location.locationId)
+                CharacterLocationCrossRef(
+                    it.characterId,
+                    locationWithCharacters.location.locationId
+                )
             )
         }
-
     }
 
     private suspend fun getLocationsFromCache(): List<Location> {
         lateinit var locationList: List<Location>
-
+        Log.i(TAG, "Get Locations init")
         try {
             locationList = locationCacheDataSource.getLocationsFromCache()
         } catch (exception: Exception) {
@@ -58,6 +65,7 @@ class LocationRepositoryImpl @Inject constructor(
         if (locationList.isEmpty()) {
             locationList = getLocationsFromDb()
             locationCacheDataSource.saveLocationsToCache(locationList)
+            Log.i(TAG, "Locations saved to Cache")
         }
         return locationList
     }
@@ -70,22 +78,17 @@ class LocationRepositoryImpl @Inject constructor(
             Log.i(TAG, exception.message.toString())
         }
         if (locationList.isEmpty()) {
-            locationList = getLocationsFromDb(locationIdsList)
+            locationList = getLocationsByIdsFromDb(locationIdsList)
             saveLocations(locationList)
-        }else {
+        } else {
             val idInDb = locationList.map { it.locationId }
             val locationIdsListToSave = locationIdsList.filterNot { idInDb.contains(it.toLong()) }
-            if (locationIdsListToSave.contains(0)) createUnknownLocation()
-            val newLocationsToSave = getLocationsFromDb(locationIdsListToSave)
-            saveLocations(newLocationsToSave)
+            if (locationIdsListToSave.isNotEmpty()) {
+                val newLocationsToSave = getLocationsByIdsFromDb(locationIdsListToSave)
+                saveLocations(newLocationsToSave)
+            }
         }
         return locationList
-    }
-
-    private suspend fun createUnknownLocation() {
-        val unknownLocation =
-            Location("", "", 0, "Unknown Location", "","")
-        saveLocation(unknownLocation)
     }
 
     override suspend fun saveLocations(locations: List<Location>) {
@@ -94,20 +97,22 @@ class LocationRepositoryImpl @Inject constructor(
     }
 
     private suspend fun getLocationsFromDb(): List<Location> {
-        lateinit var locationList: List<Location>
+        var locationList = mutableSetOf<Location>()
         try {
-            locationList = locationLocalDataSource.getLocationsFromDb()
+            locationList.addAll(locationLocalDataSource.getLocationsFromDb())
         } catch (exception: Exception) {
             Log.i(TAG, exception.message.toString())
-            locationList = emptyList()
         }
         if (locationList.isEmpty()) {
-            locationList = getLocationsFromApi()
+            locationList.add(createUnknownLocation())
+            locationList.addAll(getLocationsFromApi())
+            locationLocalDataSource.saveLocationsToDb(locationList.toList())
+            Log.i(TAG, "Locations saved to Db")
         }
-        return locationList
+        return locationList.toList()
     }
 
-    private suspend fun getLocationsFromDb(locationsIdsList: List<Int>): List<Location> {
+    private suspend fun getLocationsByIdsFromDb(locationsIdsList: List<Int>): List<Location> {
         var locationList: List<Location>
         try {
             locationList =
@@ -117,39 +122,62 @@ class LocationRepositoryImpl @Inject constructor(
             locationList = emptyList()
         }
         if (locationList.isEmpty()) {
-            locationList = getLocationsFromApi(locationsIdsList)
+            locationList = getLocationsByIdsFromApi(locationsIdsList)
         }
         return locationList
     }
 
     private suspend fun getLocationsFromApi(): List<Location> {
-        lateinit var locationList: List<Location>
+        val locationList = mutableSetOf<Location>()
+        Log.i(TAG, "Get locations from Api init")
         try {
             val response: Response<Data> = locationRemoteDataSource.getLocations()
             val body = response.body()
-            if (body != null) {
-                locationList = body.results.map { it.toLocation() }
-
+            body?.let { locationData ->
+                locationList.addAll(body.results.map { it.toLocation() })
+                locationList.addAll(fetchAllLocations(locationData.info.pages))
+                Log.i(TAG, "All locations fetched")
             }
         } catch (exception: Exception) {
             Log.i(TAG, exception.message.toString())
         }
-        return locationList
+        return locationList.toList()
     }
 
-    private suspend fun getLocationsFromApi(locationIdsList: List<Int>): List<Location> {
-        lateinit var locationList: List<Location>
+    private suspend fun getLocationsByIdsFromApi(locationIdsList: List<Int>): List<Location> {
+        var locationList = mutableSetOf<Location>()
         try {
             val response: Response<List<ResultDto>> =
                 locationRemoteDataSource.getLocationsByIds(locationIdsList)
             val body = response.body()
-            if (body != null) {
-                locationList = body.map { it.toLocation() }
+            body.let { resultData ->
+                resultData?.let { resultList -> locationList.addAll(resultList.map { it.toLocation() }) }
             }
         } catch (exception: Exception) {
             Log.i(TAG, exception.message.toString())
-            locationList = emptyList()
         }
-        return locationList
+        return locationList.toList()
     }
+
+    private suspend fun fetchAllLocations(totalPages: Int) = callbackFlow {
+        val locationList = mutableSetOf<Location>()
+        try {
+            for (page in 2..totalPages) {
+                val response = locationRemoteDataSource.getLocationsByPage(page)
+                response.body().let {
+                    it?.results?.let { listLocationResult ->
+                        locationList.addAll(listLocationResult.toLocationList())
+                    }
+                }
+            }
+        } catch (exception: Exception) {
+            Log.i(TAG, exception.message.toString())
+        }
+        trySend(locationList)
+        close()
+    }.first()
+
+    private fun createUnknownLocation(): Location =
+        Location("", "", 0, "Unknown Location", "", "")
+
 }
