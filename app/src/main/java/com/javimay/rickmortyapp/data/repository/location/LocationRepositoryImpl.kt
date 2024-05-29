@@ -30,7 +30,7 @@ class LocationRepositoryImpl @Inject constructor(
 
     override suspend fun getLocations(): List<Location> = getLocationsFromCache()
 
-    override suspend fun getLocationsFromIds(locationIdsList: List<Int>): List<Location> =
+    override suspend fun getLocationsByIds(locationIdsList: List<Int>): List<Location> =
         getLocationsFromCache(locationIdsList)
 
     override suspend fun saveLocation(location: Location) {
@@ -113,13 +113,12 @@ class LocationRepositoryImpl @Inject constructor(
     }
 
     private suspend fun getLocationsByIdsFromDb(locationsIdsList: List<Int>): List<Location> {
-        var locationList: List<Location>
+        var locationList = listOf<Location>()
         try {
             locationList =
                 locationLocalDataSource.getLocationsByIdsFromDb(locationsIdsList.map { it.toLong() })
         } catch (exception: Exception) {
             Log.i(TAG, exception.message.toString())
-            locationList = emptyList()
         }
         if (locationList.isEmpty()) {
             locationList = getLocationsByIdsFromApi(locationsIdsList)

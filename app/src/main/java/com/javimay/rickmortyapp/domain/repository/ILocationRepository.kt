@@ -6,7 +6,7 @@ import com.javimay.rickmortyapp.data.model.relations.LocationWithCharacter
 interface ILocationRepository {
 
     suspend fun getLocations(): List<Location>
-    suspend fun getLocationsFromIds(locationIdsList: List<Int>): List<Location>
+    suspend fun getLocationsByIds(locationIdsList: List<Int>): List<Location>
 
     suspend fun saveLocation(location: Location)
     suspend fun saveLocations(locations: List<Location>)

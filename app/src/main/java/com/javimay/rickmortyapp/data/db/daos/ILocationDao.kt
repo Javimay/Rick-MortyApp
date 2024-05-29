@@ -19,6 +19,7 @@ interface ILocationDao {
     @Query("SELECT * FROM $LOCATION_TABLE")
     suspend fun getLocations(): List<Location>
 
+
     @Query("SELECT * FROM $LOCATION_TABLE Where locationId IN (:locationsIds)")
     suspend fun getLocationsByIds(locationsIds: List<Long>): List<Location>
 

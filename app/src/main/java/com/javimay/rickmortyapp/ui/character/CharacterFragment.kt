@@ -2,7 +2,6 @@ package com.javimay.rickmortyapp.ui.character
 
 import android.app.Dialog
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +11,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.javimay.rickmortyapp.R
+import com.javimay.rickmortyapp.data.db.entities.toLocationDtoList
 import com.javimay.rickmortyapp.data.model.CharacterDto
 import com.javimay.rickmortyapp.databinding.FragmentCharacterBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -21,7 +21,6 @@ class CharacterFragment : DialogFragment() {
 
     private lateinit var binding: FragmentCharacterBinding
     private lateinit var navController: NavController
-    private lateinit var character: MutableList<CharacterDto>
     private val characterViewModel: CharacterFragmentViewModel by viewModels()
     private val args: CharacterFragmentArgs by navArgs()
 
@@ -33,8 +32,27 @@ class CharacterFragment : DialogFragment() {
         navController = findNavController()
         val character = args.character
         bindCharacterData(character)
+        getCharacterLocations(character)
 
         return binding.root
+    }
+
+    private fun getCharacterLocations(character: CharacterDto) {
+        val locationIds = listOf(character.locationId, character.originId)
+        characterViewModel.getCharacterLocations(locationIds)
+            .observe(viewLifecycleOwner) { location ->
+                if (location.isNotEmpty()) {
+                    val locationDto = location.toLocationDtoList()
+                    if (locationDto.size == 1){
+                        character.origin = locationDto.first()
+                        character.location = locationDto.first()
+                    } else {
+                        character.location = locationDto.find { it.locationId == character.locationId }
+                        character.origin = locationDto.find { it.locationId == character.originId }
+                    }
+                    bindCharacterData(character)
+                }
+            }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -53,7 +71,7 @@ class CharacterFragment : DialogFragment() {
         binding.tvGenderValue.text = character.gender
         binding.tvSpecieValue.text = character.species
         binding.tvStatusValue.text = character.status
-        binding.tvOriginValue.text = character.originId.toString()
-        binding.tvLocationValue.text = character.locationId.toString()
+        binding.tvOriginValue.text = character.origin?.name
+        binding.tvLocationValue.text = character.location?.name
     }
 }
