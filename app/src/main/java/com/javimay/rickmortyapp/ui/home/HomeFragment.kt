@@ -1,24 +1,20 @@
 package com.javimay.rickmortyapp.ui.home
 
-import android.graphics.Color
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.res.ResourcesCompat
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.javimay.rickmortyapp.R
 import com.javimay.rickmortyapp.data.db.entities.Character
 import com.javimay.rickmortyapp.data.db.entities.toCharacterDto
 import com.javimay.rickmortyapp.databinding.FragmentHomeBinding
 import com.javimay.rickmortyapp.ui.adapters.RecyclerViewAdapter
-import com.javimay.rickmortyapp.ui.character.CharacterFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -28,6 +24,7 @@ class HomeFragment : Fragment() {
     private lateinit var navController: NavController
     private val homeViewModel: HomeFragmentViewModel by viewModels()
     private lateinit var charactersList: MutableList<Character>
+    private lateinit var adapter: RecyclerViewAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,9 +32,7 @@ class HomeFragment : Fragment() {
     ): View {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         navController = findNavController()
-        homeViewModel.loading.observe(viewLifecycleOwner) {
-            showLoading(it)
-        }
+        showLoading(true)
         downloadCharacters()
         return binding.root
     }
@@ -45,6 +40,7 @@ class HomeFragment : Fragment() {
     private fun showLoading(show: Boolean) {
         binding.pbLoader.isVisible = show
         binding.rvCharacters.isVisible = !show
+        binding.svSearchBar.isVisible = !show
     }
 
     private fun downloadCharacters() {
@@ -56,31 +52,37 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun initSearchBar() {
+        binding.svSearchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener,
+            android.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                adapter.getFilter().filter(query)
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                adapter.getFilter().filter(newText)
+                return true
+            }
+        })
+    }
+
     private fun initRecyclerView() {
         val viewManager = GridLayoutManager(context, 2)
-        val adapter = RecyclerViewAdapter(charactersList)
+        adapter = RecyclerViewAdapter(charactersList)
         adapter.onItemClick = { position ->
             goToContentCharacterFragment(charactersList[position])
         }
         binding.rvCharacters.adapter = adapter
         binding.rvCharacters.layoutManager = viewManager
         showLoading(false)
+        initSearchBar()
     }
 
     private fun goToContentCharacterFragment(character: Character) {
         val action = HomeFragmentDirections.actionHomeFragmentToCharacterFragment(
-            character.characterId,
             character.toCharacterDto()
         )
         navController.navigate(action)
-
-//        showCharacterFragment()
-    }
-
-    private fun showCharacterFragment() {
-        activity?.supportFragmentManager?.beginTransaction()
-//            ?.add(R.id.fcvCharacterDetails, CharacterFragment())
-            ?.addToBackStack(null)
-            ?.commit()
     }
 }

@@ -23,16 +23,14 @@
             android:id="@+id/action_homeFragment_to_characterFragment"
             app:destination="@id/characterFragment" />
     </fragment>
-    <dialog
+    <fragment
         android:id="@+id/characterFragment"
         android:name="com.javimay.rickmortyapp.ui.character.CharacterFragment"
         android:label="fragment_character"
         tools:layout="@layout/fragment_character" >
-        <argument
-            android:name="id"
-            app:argType="long" />
+
         <argument
             android:name="character"
             app:argType="com.javimay.rickmortyapp.data.model.CharacterDto" />
-    </dialog>
+    </fragment>
 </navigation>

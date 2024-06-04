@@ -1,39 +1,41 @@
 package com.javimay.rickmortyapp.ui.character
 
-import android.app.Dialog
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.DialogFragment
+import androidx.annotation.RequiresApi
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.javimay.rickmortyapp.R
 import com.javimay.rickmortyapp.data.db.entities.toLocationDtoList
 import com.javimay.rickmortyapp.data.model.CharacterDto
 import com.javimay.rickmortyapp.databinding.FragmentCharacterBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class CharacterFragment : DialogFragment() {
+class CharacterFragment : Fragment() {
 
     private lateinit var binding: FragmentCharacterBinding
     private lateinit var navController: NavController
     private val characterViewModel: CharacterFragmentViewModel by viewModels()
     private val args: CharacterFragmentArgs by navArgs()
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentCharacterBinding.inflate(inflater, container, false)
         navController = findNavController()
-        val character = args.character
-        bindCharacterData(character)
-        getCharacterLocations(character)
-
+        args.let {
+            val character = args.character
+            bindCharacterData(character)
+            getCharacterLocations(character)
+        }
         return binding.root
     }
 
@@ -53,16 +55,6 @@ class CharacterFragment : DialogFragment() {
                     bindCharacterData(character)
                 }
             }
-    }
-
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = super.onCreateDialog(savedInstanceState)
-        dialog.window?.apply {
-            setStyle(STYLE_NORMAL, android.R.style.Theme_Material_Light_Dialog_NoActionBar_MinWidth)
-            setLayout(1000, 300)
-            setBackgroundDrawableResource(R.color.transparent)
-        }
-        return dialog
     }
 
     private fun bindCharacterData(character: CharacterDto) {

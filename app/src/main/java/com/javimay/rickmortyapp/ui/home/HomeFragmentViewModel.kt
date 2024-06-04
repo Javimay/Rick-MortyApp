@@ -18,10 +18,7 @@ class HomeFragmentViewModel @Inject constructor(
     private val getCharacterUseCase: GetCharacterUseCase
 ) : ViewModel(), LifecycleObserver {
 
-    val loading = MutableLiveData<Boolean>()
-
     fun getCharacter() = liveData {
-        loading.postValue(true)
         emit(getCharacterUseCase.execute())
     }
 }
