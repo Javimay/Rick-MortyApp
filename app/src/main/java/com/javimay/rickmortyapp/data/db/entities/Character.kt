@@ -6,7 +6,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.javimay.rickmortyapp.data.model.CharacterDto
-import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterEpisodeCrossRef
 import com.javimay.rickmortyapp.utils.CHARACTER_TABLE
 
 @Entity(

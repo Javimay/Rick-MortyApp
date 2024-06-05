@@ -1,4 +1,4 @@
-package com.javimay.rickmortyapp.data.model.relations
+package com.javimay.rickmortyapp.data.db.relations
 
 import androidx.room.Entity
 

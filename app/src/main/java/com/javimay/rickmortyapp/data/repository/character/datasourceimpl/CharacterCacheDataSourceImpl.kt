@@ -1,8 +1,8 @@
 package com.javimay.rickmortyapp.data.repository.character.datasourceimpl
 
 import com.javimay.rickmortyapp.data.db.entities.Character
-import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
-import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterEpisodeCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterLocationCrossRef
 import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterCacheDataSource
 import javax.inject.Inject
 

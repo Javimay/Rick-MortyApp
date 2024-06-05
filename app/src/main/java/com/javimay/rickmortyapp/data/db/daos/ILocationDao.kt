@@ -7,9 +7,9 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.javimay.rickmortyapp.data.db.entities.Episode
 import com.javimay.rickmortyapp.data.db.entities.Location
-import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
-import com.javimay.rickmortyapp.data.model.relations.EpisodeWithCharacter
-import com.javimay.rickmortyapp.data.model.relations.LocationWithCharacter
+import com.javimay.rickmortyapp.data.db.relations.CharacterLocationCrossRef
+import com.javimay.rickmortyapp.data.db.relations.EpisodeWithCharacter
+import com.javimay.rickmortyapp.data.db.relations.LocationWithCharacter
 import com.javimay.rickmortyapp.utils.EPISODE_TABLE
 import com.javimay.rickmortyapp.utils.LOCATION_TABLE
 

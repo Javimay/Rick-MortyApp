@@ -2,9 +2,9 @@ package com.javimay.rickmortyapp.data.repository.character.datasourceimpl
 
 import com.javimay.rickmortyapp.data.db.daos.ICharacterDao
 import com.javimay.rickmortyapp.data.db.entities.Character
-import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
-import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
-import com.javimay.rickmortyapp.data.model.relations.CharacterWithEpisode
+import com.javimay.rickmortyapp.data.db.relations.CharacterEpisodeCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterLocationCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterWithEpisode
 import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterLocalDataSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +23,8 @@ class CharacterLocalDataSourceImpl @Inject constructor(
         characterDao.getCharacterWithEpisodeById(characterWithEpisodeId)
 
     override suspend fun saveCharacterWithEpisodeToDb(
-        characterWithEpisode: CharacterEpisodeCrossRef): Long =
+        characterWithEpisode: CharacterEpisodeCrossRef
+    ): Long =
         characterDao.saveCharacterWithEpisodes(characterWithEpisode)
 
     override suspend fun saveCharactersWithEpisodesToDb(
@@ -32,7 +33,8 @@ class CharacterLocalDataSourceImpl @Inject constructor(
 
 
     override suspend fun saveCharacterWithLocationToDb(
-        characterWithLocation: CharacterLocationCrossRef): Long =
+        characterWithLocation: CharacterLocationCrossRef
+    ): Long =
         characterDao.saveCharacterWithLocations(characterWithLocation)
 
     override suspend fun saveCharactersWithLocationsToDb(

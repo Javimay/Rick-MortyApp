@@ -4,8 +4,8 @@ import android.util.Log
 import com.javimay.rickmortyapp.data.db.entities.Location
 import com.javimay.rickmortyapp.data.model.Data
 import com.javimay.rickmortyapp.data.model.ResultDto
-import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
-import com.javimay.rickmortyapp.data.model.relations.LocationWithCharacter
+import com.javimay.rickmortyapp.data.db.relations.CharacterLocationCrossRef
+import com.javimay.rickmortyapp.data.db.relations.LocationWithCharacter
 import com.javimay.rickmortyapp.data.model.toLocation
 import com.javimay.rickmortyapp.data.model.toLocationList
 import com.javimay.rickmortyapp.data.repository.episode.EpisodeRepositoryImpl

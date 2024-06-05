@@ -1,7 +1,7 @@
 package com.javimay.rickmortyapp.data.repository.episode.datasource
 
 import com.javimay.rickmortyapp.data.db.entities.Episode
-import com.javimay.rickmortyapp.data.model.relations.EpisodeWithCharacter
+import com.javimay.rickmortyapp.data.db.relations.EpisodeWithCharacter
 
 interface IEpisodeCacheDataSource {
 

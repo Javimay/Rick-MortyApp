@@ -62,6 +62,8 @@ dependencies {
     implementation(libs.kotlin.serialization)
     implementation(libs.androidx.cardview)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.preference)
+    implementation(libs.androidx.swipe.refresh)
 
     // ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

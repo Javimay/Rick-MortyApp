@@ -2,7 +2,7 @@ package com.javimay.rickmortyapp.data.repository.location.datasourceimpl
 
 import com.javimay.rickmortyapp.data.db.daos.ILocationDao
 import com.javimay.rickmortyapp.data.db.entities.Location
-import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterLocationCrossRef
 import com.javimay.rickmortyapp.data.repository.location.datasource.ILocationLocalDataSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

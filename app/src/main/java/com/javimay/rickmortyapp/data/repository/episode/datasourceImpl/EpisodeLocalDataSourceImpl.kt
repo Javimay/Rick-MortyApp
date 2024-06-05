@@ -2,8 +2,8 @@ package com.javimay.rickmortyapp.data.repository.episode.datasourceImpl
 
 import com.javimay.rickmortyapp.data.db.daos.IEpisodeDao
 import com.javimay.rickmortyapp.data.db.entities.Episode
-import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
-import com.javimay.rickmortyapp.data.model.relations.EpisodeWithCharacter
+import com.javimay.rickmortyapp.data.db.relations.CharacterEpisodeCrossRef
+import com.javimay.rickmortyapp.data.db.relations.EpisodeWithCharacter
 import com.javimay.rickmortyapp.data.repository.episode.datasource.IEpisodeLocalDataSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

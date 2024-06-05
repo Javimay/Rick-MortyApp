@@ -6,8 +6,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.javimay.rickmortyapp.data.db.entities.Episode
-import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
-import com.javimay.rickmortyapp.data.model.relations.EpisodeWithCharacter
+import com.javimay.rickmortyapp.data.db.relations.CharacterEpisodeCrossRef
+import com.javimay.rickmortyapp.data.db.relations.EpisodeWithCharacter
 import com.javimay.rickmortyapp.utils.EPISODE_TABLE
 
 @Dao

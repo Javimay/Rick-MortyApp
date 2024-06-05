@@ -2,8 +2,8 @@ package com.javimay.rickmortyapp.domain.usecases
 
 import android.util.Log
 import com.javimay.rickmortyapp.data.db.entities.Character
-import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
-import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterEpisodeCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterLocationCrossRef
 import com.javimay.rickmortyapp.data.repository.character.CharacterRepositoryImpl
 import com.javimay.rickmortyapp.domain.repository.ICharacterRepository
 import com.javimay.rickmortyapp.utils.getIdFromString

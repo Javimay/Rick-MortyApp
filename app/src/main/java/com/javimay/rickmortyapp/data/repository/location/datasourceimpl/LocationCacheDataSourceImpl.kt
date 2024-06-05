@@ -2,7 +2,7 @@ package com.javimay.rickmortyapp.data.repository.location.datasourceimpl
 
 import com.javimay.rickmortyapp.data.db.entities.Episode
 import com.javimay.rickmortyapp.data.db.entities.Location
-import com.javimay.rickmortyapp.data.model.relations.LocationWithCharacter
+import com.javimay.rickmortyapp.data.db.relations.LocationWithCharacter
 import com.javimay.rickmortyapp.data.repository.location.datasource.ILocationCacheDataSource
 import javax.inject.Inject
 

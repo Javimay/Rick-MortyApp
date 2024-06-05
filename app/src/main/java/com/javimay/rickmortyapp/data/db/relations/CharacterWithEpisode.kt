@@ -1,4 +1,4 @@
-package com.javimay.rickmortyapp.data.model.relations
+package com.javimay.rickmortyapp.data.db.relations
 
 import androidx.room.Embedded
 import androidx.room.Junction
@@ -6,13 +6,13 @@ import androidx.room.Relation
 import com.javimay.rickmortyapp.data.db.entities.Character
 import com.javimay.rickmortyapp.data.db.entities.Episode
 
-data class EpisodeWithCharacter (
-    @Embedded val episode: Episode,
+
+data class CharacterWithEpisode(
+    @Embedded val character: Character,
     @Relation(
-        parentColumn = "episodeId",
-        entityColumn = "characterId",
+        parentColumn = "characterId",
+        entityColumn = "episodeId",
         associateBy = Junction(CharacterEpisodeCrossRef::class)
     )
-    val characters: List<Character>
-
+    val episodes: List<Episode>
 )

@@ -15,7 +15,7 @@ class RecyclerViewAdapter(
     private val characterList: MutableList<Character>,
 ) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
 
-    var onItemClick: ((position: Int) -> Unit)? = null
+    var onItemClick: ((character: Character) -> Unit)? = null
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -69,6 +69,15 @@ class RecyclerViewAdapter(
         return characterFilter
     }
 
+    fun updateCharactersList(characters: List<Character>) {
+        var characterPosition = characterList.size
+        characters.forEach { character ->
+            characterPosition++
+            characterList.add(character)
+            notifyItemInserted(characterPosition)
+        }
+    }
+
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         fun initBindHolder(character: Character, position: Int) {
@@ -78,7 +87,7 @@ class RecyclerViewAdapter(
             tvCharacterName.text = character.name
 
             itemView.setOnClickListener {
-                onItemClick?.invoke(position)
+                onItemClick?.invoke(characterList[position])
             }
         }
     }

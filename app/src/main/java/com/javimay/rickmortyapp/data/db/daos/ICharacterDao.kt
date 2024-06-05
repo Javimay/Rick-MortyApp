@@ -6,9 +6,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.javimay.rickmortyapp.data.db.entities.Character
-import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
-import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
-import com.javimay.rickmortyapp.data.model.relations.CharacterWithEpisode
+import com.javimay.rickmortyapp.data.db.relations.CharacterEpisodeCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterLocationCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterWithEpisode
 import com.javimay.rickmortyapp.utils.CHARACTER_TABLE
 
 @Dao
@@ -37,7 +37,8 @@ interface ICharacterDao {
     @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveCharacterWithEpisodes(
-        characterWithEpisode: CharacterEpisodeCrossRef) : Long
+        characterWithEpisode: CharacterEpisodeCrossRef
+    ) : Long
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -47,7 +48,8 @@ interface ICharacterDao {
     @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveCharacterWithLocations(
-        characterWithLocation: CharacterLocationCrossRef): Long
+        characterWithLocation: CharacterLocationCrossRef
+    ): Long
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)

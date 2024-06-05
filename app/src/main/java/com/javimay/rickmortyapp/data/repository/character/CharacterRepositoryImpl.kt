@@ -5,9 +5,10 @@ import android.util.Log
 import com.javimay.rickmortyapp.data.db.entities.Character
 import com.javimay.rickmortyapp.data.model.Data
 import com.javimay.rickmortyapp.data.model.ResultDto
-import com.javimay.rickmortyapp.data.model.relations.CharacterEpisodeCrossRef
-import com.javimay.rickmortyapp.data.model.relations.CharacterLocationCrossRef
-import com.javimay.rickmortyapp.data.model.relations.CharacterWithEpisode
+import com.javimay.rickmortyapp.data.db.relations.CharacterEpisodeCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterLocationCrossRef
+import com.javimay.rickmortyapp.data.db.relations.CharacterWithEpisode
+import com.javimay.rickmortyapp.data.model.SharedPreferenceManager
 import com.javimay.rickmortyapp.data.model.toCharacter
 import com.javimay.rickmortyapp.data.model.toCharacterList
 import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterCacheDataSource
@@ -15,6 +16,7 @@ import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterL
 import com.javimay.rickmortyapp.data.repository.character.datasource.ICharacterRemoteDataSource
 import com.javimay.rickmortyapp.domain.repository.ICharacterRepository
 import com.javimay.rickmortyapp.utils.MAX_PAGE_SIZE
+import com.javimay.rickmortyapp.utils.getIdFromString
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
@@ -40,6 +42,12 @@ class CharacterRepositoryImpl @Inject constructor(
         val characterList = getCharactersByIdsFromApi(charactersIds)
         return characterList
     }
+
+    override suspend fun getCharactersByPage(): List<Character> =
+        SharedPreferenceManager.getInstance(context).charactersPageValue.let {
+            getCharactersByPageFromApi(it.plus(1))
+        }
+
 
     override suspend fun saveCharacters(charactersList: List<Character>) {
         characterCacheDataSource.saveCharactersToCache(charactersList)
@@ -163,6 +171,7 @@ class CharacterRepositoryImpl @Inject constructor(
                 characterList.addAll(characterData.results.map { it.toCharacter(context) })
                 //Iterate all pages to get Character Data
                 characterList.addAll(fetchAllCharacters())
+                SharedPreferenceManager.getInstance(context).charactersPageValue = MAX_PAGE_SIZE
                 Log.i(TAG,"characters fetched: ${characterList.size}")
             }
         } catch (exception: Exception) {
@@ -203,6 +212,47 @@ class CharacterRepositoryImpl @Inject constructor(
             Log.i(TAG, exception.message.toString())
         }
         trySend(characterList)
+        close()
+    }.first()
+
+    private suspend fun getCharactersByPageFromApi(page: Int): List<Character> {
+        val characterList = mutableSetOf<Character>()
+        try {
+            val response: Response<Data> =
+                characterRemoteDataSource.getCharactersByPage(page)
+            val body = response.body()
+            body?.let {
+                characterList.addAll(body.results.map { it.toCharacter(context) })
+                SharedPreferenceManager.getInstance(context).charactersPageValue = page
+                saveCharacters(characterList.toList())
+                fetchEpisodesWithLocationsAndCharacters(characterList.toList())
+            }
+        } catch (exception: Exception) {
+            Log.i(TAG, exception.message.toString())
+        }
+        return characterList.toList()
+    }
+
+    private suspend fun fetchEpisodesWithLocationsAndCharacters(
+        charactersList: List<Character>
+    ) = callbackFlow {
+        val characterAndLocationList = mutableListOf<CharacterLocationCrossRef>()
+        val characterAndEpisodesList = mutableListOf<CharacterEpisodeCrossRef>()
+
+        characterAndLocationList.addAll(charactersList.map { character ->
+            CharacterLocationCrossRef(character.characterId, character.locationId)
+        })
+        //Create a list of CharacterEpisodeCrossRef
+        charactersList.forEach { character ->
+            character.episodeList.forEach {
+                characterAndEpisodesList.add(
+                    CharacterEpisodeCrossRef(character.characterId, getIdFromString(it).toLong()
+                    )
+                )
+            }
+        }
+        trySend(saveCharactersWithLocationsList(characterAndLocationList) &&
+                saveCharactersWithEpisodesList(characterAndEpisodesList))
         close()
     }.first()
 }
